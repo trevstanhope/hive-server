@@ -8,11 +8,10 @@ TODO:
 - update firebase log on tweet
 - proper redirect on tweet
 """
+
 # Constants
 FLASK_IP = '0.0.0.0'
 FLASK_PORT = 5000
-FIREBASE = 'hivemind'
-FIREBASE_ADDR = 'https://' + FIREBASE + '.firebaseio.com'
 TIME_FORMAT = '%Y-%m-%d %H:%M:%S %Z'
 DEBUG = True
 
