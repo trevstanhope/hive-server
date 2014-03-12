@@ -1,0 +1,12 @@
+body {
+  font: 10px sans-serif;
+}
+
+center {
+	width:320px;
+	height:240px;
+	position:absolute;
+	left:50%;
+	top:16%;
+	margin:-40px 0 0 -160px;
+}

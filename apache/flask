@@ -1,0 +1,11 @@
+<VirtualHost *:80>
+        ServerAdmin webmaster@localhost
+        ServerName hivemind.mobi
+        ProxyRequests Off
+        <Proxy *>
+                Order deny,allow
+                Allow from all
+        </Proxy>
+        ProxyPreserveHost on
+        ProxyPass / http://localhost:5000/
+</VirtualHost>
