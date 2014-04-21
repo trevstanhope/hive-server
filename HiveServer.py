@@ -35,7 +35,7 @@ with open('api_keys.json', 'r') as keyfile:
 client = MongoClient(MONGO_ADDR, MONGO_PORT)
 db = client[MONGO_DB]
 
-# FLask
+# Flask
 app = Flask(__name__)
 app.secret_key = FLASK_SECRET
 
@@ -50,17 +50,17 @@ twitter = oauth.remote_app('twitter',
     consumer_secret=TWITTER_SECRET
 )
 
-# Twitter Session
+## Twitter Session
 @twitter.tokengetter
 def get_twitter_token(token=None):
     return session.get('twitter_token')
 
-# Index
+## Index
 @app.route('/')
 def index():
     return render_template('index.html')
 
-# Login 
+## Login 
 @app.route('/login')
 def login():
     if session.has_key('twitter_token'):
@@ -68,14 +68,14 @@ def login():
     return twitter.authorize(callback=url_for('oauth_authorized',
         next=(request.args.get('next') or request.referrer or None)))
 
-# Logout 
+## Logout 
 @app.route('/logout')
 def logout():
     if session.has_key('twitter_token'):
         del session['twitter_token']
     return redirect(url_for('index'))
 
-# OAuth
+## OAuth
 @app.route('/oauth_authorized')
 @twitter.authorized_handler
 def oauth_authorized(resp):
@@ -93,6 +93,7 @@ def oauth_authorized(resp):
 # Lists all aggregators, current warnings, and general info 
 @app.route('/user/<username>')
 def user(username):
+    collection = db[username]
     return render_template('user.html',
         username=username,
     )
@@ -126,13 +127,10 @@ def new():
     packet = request.json # the JSON sample
     if not packet == None:
         try:
-            public_key = packet['public_key']
             aggregator_id = packet['aggregator_id']
-            private_key = db['private_keys'].find({'aggregator_id': aggregator_id})
-            if public_key == private_key:
-                packet['time'] = datetime.now()
-                collection = db[aggregator_id]
-                collection.post(packet)
+            packet['time'] = datetime.now()
+            collection = db[aggregator_id]
+            collection.post(packet)
         except Exception:
             pass
     return redirect('/')
