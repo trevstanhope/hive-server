@@ -5,15 +5,9 @@ Developed by Trevor Stanhope
 Mobile web-app Flask server for monitoring distributed hives hive monitors.
 
 TODO:
-- update firebase log on tweet
+- full Mongo support
 - proper redirect on tweet
 """
-
-# Constants
-FLASK_IP = '0.0.0.0'
-FLASK_PORT = 5000
-TIME_FORMAT = '%Y-%m-%d %H:%M:%S %Z'
-DEBUG = True
 
 # Libraries
 import json
@@ -22,6 +16,14 @@ from flask_oauth import OAuth
 from pymongo import MongoClient
 import datetime
 
+# Constants
+FLASK_IP = '0.0.0.0'
+FLASK_PORT = 5000
+MONGO_ADDR = '127.0.0.1'
+MONGO_PORT = 27017
+MONGO_DB = 'HiveServer'
+DEBUG = True
+
 # API Keys
 with open('api_keys.json', 'r') as keyfile:
     keys = json.loads(keyfile.read())
@@ -29,9 +31,15 @@ with open('api_keys.json', 'r') as keyfile:
     TWITTER_KEY = keys['TWITTER_KEY']
     TWITTER_SECRET = keys['TWITTER_SECRET']
 
-# Global Objects
+# MongoDB
+client = MongoClient(MONGO_ADDR, MONGO_PORT)
+db = client[MONGO_DB]
+
+# FLask
 app = Flask(__name__)
 app.secret_key = FLASK_SECRET
+
+# Oauth
 oauth = OAuth()
 twitter = oauth.remote_app('twitter',
     base_url='https://api.twitter.com/1.1/', #API_V1.1
@@ -81,14 +89,16 @@ def oauth_authorized(resp):
         session['twitter_user'] = resp['screen_name']
         return redirect('/user/' + session['twitter_user'])
 
-# User
+## User account page
+# Lists all aggregators, current warnings, and general info 
 @app.route('/user/<username>')
 def user(username):
     return render_template('user.html',
         username=username,
     )
 
-# Tweet
+## Tweet log to twitter
+# On log post to /tweet, post log entry as status to twitter
 @app.route('/tweet', methods=['POST'])
 def tweet():
     if not session.has_key('twitter_token'):
@@ -109,7 +119,25 @@ def tweet():
         print(str(resp.status) + ': Other')
     return redirect('/user/' + session['twitter_user'])
 
-# Aggregator
+## Handle new log or sample
+# On post to /new, the JSON is checked before being added to a collection
+@app.route('/new', methods=['GET', 'POST'])
+def new():
+    packet = request.json # the JSON sample
+    if not packet == None:
+        try:
+            public_key = packet['public_key']
+            aggregator_id = packet['aggregator_id']
+            private_key = db['private_keys'].find({'aggregator_id': aggregator_id})
+            if public_key == private_key:
+                packet['time'] = datetime.now()
+                collection = db[aggregator_id]
+                collection.post(packet)
+        except Exception:
+            pass
+    return redirect('/')
+
+## Aggregator
 @app.route('/aggregator/<aggregator>')
 def aggregator(aggregator):
     return render_template('aggregator.html',

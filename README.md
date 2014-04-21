@@ -1,5 +1,6 @@
 #HiveFeed
-Flask + Twitter + D3.js mobile web-app for graphing and tweeting firebase hives
+Flask + Twitter + D3.js mobile web-app for graphing and tweeting
+MongoDB hives data
 
 ## Installation
 Allow install.sh to be executable:
