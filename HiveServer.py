@@ -94,8 +94,12 @@ def oauth_authorized(resp):
 @app.route('/user/<username>')
 def user(username):
     collection = db[username]
+    hives = [doc['hive_id'] for doc in collection.find({'type':'hive'})]
+    aggregators = [doc['aggregator_id'] for doc in collection.find({'type':'aggregator'})]    	
     return render_template('user.html',
         username=username,
+        aggregator=aggregators,
+        hives=hives,
     )
 
 ## Tweet log to twitter
@@ -127,12 +131,12 @@ def new():
     packet = request.json # the JSON sample
     if not packet == None:
         try:
-            aggregator_id = packet['aggregator_id']
-            packet['time'] = datetime.now()
-            collection = db[aggregator_id]
-            collection.post(packet)
-        except Exception:
-            pass
+            hive_id = packet['hive_id']
+            packet['time'] = datetime.datetime.now()
+            collection = db[hive_id]
+            collection.insert(packet)
+        except Exception as err:
+            print str(err)
     return redirect('/')
 
 ## Aggregator

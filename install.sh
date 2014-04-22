@@ -4,7 +4,7 @@ sudo sh -c 'echo deb http://pkg.jenkins-ci.org/debian binary/ > /etc/apt/sources
 apt-get update
 apt-get upgrade
 apt-get install pip virtualenv curl jenkins
-pip install -r requirements.txt
+pip install -U pymongo
 cp apache/* /etc/apache2/sites-available/
 a2enmod proxy
 a2ensite jenkins
